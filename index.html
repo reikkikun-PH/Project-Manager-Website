@@ -4,207 +4,54 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <link rel="icon" href="data:," />
-<title>Project Manager — Connecting…</title>
+<title>Loading…</title>
 <style>
 :root{
-  --bg0:#101114; --card:#16181d; --card2:#1b1e24; --line:#2b2f37;
-  --text:#faf6ec; --muted:#c4b9a5; --accent:#ff4b1f;
-  --accent-soft:rgba(255,75,31,.14); --green:#35d07f; --red:#ff5a5a; --amber:#e8a13d;
-  --radius:18px; --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --line:#2b2f37; --text:#faf6ec; --muted:#8f877a; --accent:#ff4b1f;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{color:var(--text);font-family:var(--mono);min-height:100vh;min-height:100dvh;
-display:flex;align-items:center;justify-content:center;padding:24px 16px;
-background:radial-gradient(circle,rgba(255,255,255,.055) 1px,transparent 1.6px) 0 0/22px 22px,
-linear-gradient(158deg,#ba9b7a 0%,#9d7d5d 16%,#564c44 34%,#222226 58%,#101113 78%,#0a0a0d 100%);
-background-attachment:fixed}
-.wrap{width:100%;max-width:460px;text-align:center}
-.eyebrow{font-size:.68rem;letter-spacing:5px;font-weight:600;color:var(--accent);margin-bottom:10px}
-h1{font-size:clamp(1.7rem,7vw,2.3rem);letter-spacing:2px;margin-bottom:6px}
-h1 span{color:var(--accent)}
-.tag{color:var(--muted);font-size:.78rem;margin-bottom:26px}
-/* spinner */
-.ring{width:84px;height:84px;margin:0 auto 22px;position:relative}
+display:flex;align-items:center;justify-content:center;
+background:linear-gradient(158deg,#1a1512 0%,#222226 50%,#0a0a0d 100%)}
+.wrap{text-align:center;padding:24px}
+.ring{width:72px;height:72px;margin:0 auto 20px;position:relative}
 .ring::before{content:"";position:absolute;inset:0;border-radius:50%;
 border:4px solid var(--line);border-top-color:var(--accent);animation:spin 0.9s linear infinite}
-.ring.done::before{border-color:var(--green);border-top-color:var(--green);animation:none}
-.ring.off::before{border-color:var(--line);border-top-color:var(--amber);animation:spin 2.2s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-#phase{font-size:.95rem;font-weight:600;letter-spacing:.5px;margin-bottom:6px}
-#detail{color:var(--muted);font-size:.75rem;overflow-wrap:anywhere;margin-bottom:18px;min-height:2.2em}
-/* progress bar */
-.bar{height:6px;background:var(--card2);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-bottom:18px}
-.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#ffb59b);
-border-radius:99px;transition:width 0.2s linear}
-.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-button,.btn{font-family:inherit;font-size:.8rem;font-weight:600;letter-spacing:.4px;cursor:pointer;
-border-radius:12px;padding:12px 20px;border:1px solid var(--line);background:var(--card2);color:var(--text);
-text-decoration:none;display:inline-block;min-height:44px}
-.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.ghost{background:transparent;border-color:transparent;color:var(--muted);font-size:.72rem}
-/* dashboard (staying) view */
-#dash{display:none;text-align:left}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px;margin-bottom:16px}
-.urlbox{background:var(--card2);border:1px dashed rgba(255,75,31,.5);border-radius:12px;
-padding:14px;font-size:.85rem;overflow-wrap:anywhere;margin-bottom:14px}
-.urlbox a{color:var(--accent);text-decoration:none}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:14px}
-.proj{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
-text-decoration:none;color:var(--text);display:block}
-.proj b{display:block;font-size:.85rem;margin-bottom:4px}
-.proj small{color:var(--muted);font-size:.7rem;overflow-wrap:anywhere}
-.proj:hover{border-color:var(--accent)}
-.meta{color:var(--muted);font-size:.72rem;margin-top:10px}
-.manual{margin-top:14px;display:flex;gap:8px}
-.manual input{flex:1;font-family:inherit;font-size:.8rem;background:var(--card2);color:var(--text);
-border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
+#phase{font-size:.8rem;letter-spacing:2px;color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="wrap">
-
-  <!-- LOADING SCREEN (default) -->
-  <div id="loader">
-    <div class="eyebrow">STABLE LINK</div>
-    <h1>Project<span>Manager</span></h1>
-    <p class="tag">Connecting you to the live server…</p>
-    <div class="ring" id="ring"></div>
-    <div id="phase">Finding the live address…</div>
-    <div id="detail">Reading the latest tunnel URL.</div>
-    <div class="bar"><i id="fill"></i></div>
-    <div class="row">
-      <button class="btn-primary" id="enter" disabled>Enter now &rarr;</button>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="ghost" id="stayBtn">Show all links instead</button>
-    </div>
-  </div>
-
-  <!-- FULL DASHBOARD (?go=0) -->
-  <div id="dash">
-    <div class="card">
-      <div class="eyebrow">STABLE LINK &mdash; ALL PROJECTS</div>
-      <h1>Project<span>Manager</span></h1>
-      <p class="tag" style="text-align:left">This page never moves. The tunnel address behind it changes on
-      every launch &mdash; this page follows it automatically.</p>
-      <div class="urlbox" id="urlbox">Looking for the live server…</div>
-      <div class="row" style="justify-content:flex-start">
-        <button class="btn-primary" id="launch" disabled>Launch &rarr;</button>
-        <button id="copyLive" disabled>Copy live link</button>
-        <button id="backBtn">Loading screen</button>
-      </div>
-      <div class="meta" id="updated"></div>
-      <div class="grid" id="projects"></div>
-      <div class="manual">
-        <input id="manualUrl" placeholder="Paste a tunnel URL to override" />
-        <button id="useManual">Use</button>
-      </div>
-    </div>
-  </div>
-
+  <div class="ring"></div>
+  <div id="phase">LOADING</div>
 </div>
 <script>
 (function(){
   var q=new URLSearchParams(location.search);
-  var stay=(q.get('go')==='0'||q.has('stay')||q.has('noredirect'));
-  var manual=(q.get('url')||localStorage.getItem('pm_manual')||'').replace(/\/+$/,'');
-  var ring=document.getElementById('ring'), phase=document.getElementById('phase'),
-      detail=document.getElementById('detail'), fill=document.getElementById('fill'),
-      enter=document.getElementById('enter');
-  var live='', redirectTimer=null, pollTimer=null, startTs=0;
-  var WAIT_MS=3000; // loading-screen pause before jumping
-
-  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-  function ago(iso){ if(!iso) return ''; var t=Date.parse(iso); if(isNaN(t)) return '';
-    var s=Math.max(0,Math.round((Date.now()-t)/1000));
-    if(s<60) return s+'s ago'; var m=Math.floor(s/60); if(m<60) return m+'m ago';
-    return Math.floor(m/60)+'h ago'; }
+  var manual=(q.get('url')||'').replace(/\/+$/,'');
+  var phase=document.getElementById('phase');
+  var jumped=false;
 
   function fetchLive(){
-    if(manual) return Promise.resolve({url:manual,updated:'',projects:[],instance:'manual override'});
+    if(manual) return Promise.resolve(manual);
     return fetch('live.json?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.json(); })
-      .then(function(j){ return {url:(j.url||'').replace(/\/+$/,''),updated:j.updated,
-                                 projects:j.projects||[],instance:j.instance}; })
+      .then(function(j){ return (j.url||'').replace(/\/+$/,''); })
       .catch(function(){
         return fetch('tunnel-url.txt?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.text(); })
-          .then(function(t){ return {url:t.trim().replace(/\/+$/,''),updated:'',projects:[],instance:''}; })
-          .catch(function(){ return {url:'',updated:'',projects:[],instance:''}; });
+          .then(function(t){ return t.trim().replace(/\/+$/,''); })
+          .catch(function(){ return ''; });
       });
   }
-
-  /* ---------- loading-screen mode ---------- */
-  function setBar(p){ fill.style.width=Math.min(100,Math.max(0,p))+'%'; }
-  function beginCountdown(){
-    startTs=Date.now(); setBar(0);
-    phase.textContent='Live server found — taking you there…';
-    enter.disabled=false;
-    redirectTimer=setInterval(function(){
-      var p=(Date.now()-startTs)/WAIT_MS;
-      setBar(p*100);
-      if(p>=1){ clearInterval(redirectTimer); location.href=live; }
-    },100);
-  }
-  function loaderTick(){
-    fetchLive().then(function(s){
-      if(s.url){
-        if(s.url!==live){ live=s.url; detail.textContent=s.url; beginCountdown(); }
-        // same URL still coming in: keep counting, refresh the shown address
-        else detail.textContent=s.url;
-      } else {
-        // OFFLINE: hold on the loading screen and keep waiting —
-        // the moment host.py comes back, this jumps on its own.
-        live=''; clearInterval(redirectTimer);
-        ring.className='ring off';
-        phase.textContent='Server is offline';
-        detail.textContent='Waiting for host.py to come online — this page will jump automatically.';
-        setBar(0); enter.disabled=true;
-      }
+  function tick(){
+    fetchLive().then(function(url){
+      if(url && !jumped){ jumped=true; location.href=url; }
+      else if(!url){ phase.textContent='WAITING FOR SERVER'; }
     });
   }
-
-  /* ---------- dashboard mode (?go=0) ---------- */
-  function fillDash(){
-    var box=document.getElementById('urlbox'), launch=document.getElementById('launch'),
-        copyLive=document.getElementById('copyLive'), upd=document.getElementById('updated'),
-        grid=document.getElementById('projects');
-    fetchLive().then(function(s){
-      if(s.url){
-        box.innerHTML='<a href="'+esc(s.url)+'">'+esc(s.url)+'</a>';
-        launch.disabled=false; copyLive.disabled=false;
-        launch.onclick=function(){ location.href=s.url; };
-        copyLive.onclick=function(){ navigator.clipboard.writeText(s.url); };
-        upd.textContent=(s.instance?('Instance '+s.instance+' · '):'')+'Updated '+ago(s.updated);
-        grid.innerHTML=s.projects.map(function(p){
-          var href=s.url+'/p/'+encodeURIComponent(p.id)+'/';
-          return '<a class="proj" href="'+esc(href)+'"><b>'+esc(p.name||p.id)+'</b><small>'+esc(href)+'</small></a>';
-        }).join('');
-      } else {
-        box.textContent='Server is offline — launch host.py on the host PC, then wait ~60s for this page to update.';
-        upd.textContent=''; grid.innerHTML='';
-      }
-    });
-    setInterval(fillDash,15000);
-  }
-
-  if(stay){
-    document.getElementById('loader').style.display='none';
-    document.getElementById('dash').style.display='block';
-    document.title='Project Manager — Stable Link';
-    document.getElementById('backBtn').onclick=function(){ location.search=''; };
-    document.getElementById('useManual').onclick=function(){
-      var v=document.getElementById('manualUrl').value.trim().replace(/\/+$/,'');
-      if(v){ localStorage.setItem('pm_manual',v); location.search='?go=0&url='+encodeURIComponent(v); }
-    };
-    if(manual) document.getElementById('manualUrl').value=manual;
-    fillDash();
-  } else {
-    enter.onclick=function(){ if(live) { clearInterval(redirectTimer); location.href=live; } };
-    document.getElementById('stayBtn').onclick=function(){ location.search='?go=0'; };
-    phase.textContent='Finding the live address…';
-    loaderTick();
-    pollTimer=setInterval(loaderTick,5000);
-  }
+  tick();
+  setInterval(tick,4000);
 })();
 </script>
 </body>
