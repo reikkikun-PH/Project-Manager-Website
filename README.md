@@ -8,12 +8,16 @@ not the tunnel address.
 
 ```
 host.py  →  logs/tunnel-url.txt (random, new each run)
-              │  publish-live.py --watch
+              │  publish-live.py --once (auto-called by host.py;
+              │                         commits only on real change)
               ▼
-Project Manager Website/live.json  →  git push  →  GitHub Pages rebuilds (~30-60s)
-              │
-index.html (this page) fetches live.json, shows LAUNCH + per-project links,
-             optionally auto-redirects with ?go=3
+GitHub repo live.json  →  git push
+              │                                \
+              │  fast lane: Contents API        \ slow lane: Pages rebuild
+              │  (live seconds after push,       (~30-90s, then cached
+              │   304s cost no quota)             live.json / tunnel-url.txt)
+              ▼                                /
+index.html reads newest-first, verifies /api/session, forwards
 ```
 
 - `index.html` — just a loading screen. Reads `live.json`, then verifies
@@ -48,6 +52,12 @@ py -3 publish-live.py --once
 REM or keep it watching (leave running next to host.py):
 py -3 publish-live.py --watch
 ```
+
+A run commits + pushes **only when the URL or projects actually changed**
+(anything else just refreshes the `updated` stamp after an hour, so
+"last online" stays honest). Pass `--force` to publish unconditionally.
+`host.py` already calls `--once` on every new tunnel URL and on shutdown,
+so day-to-day nothing needs typing.
 
 It reads `logs/tunnel-url.txt` (+ project list from `store.py`),
 writes `live.json` + `tunnel-url.txt` here, and — if this folder is a git

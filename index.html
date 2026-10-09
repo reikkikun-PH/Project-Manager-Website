@@ -46,6 +46,16 @@ padding:12px 24px;border:1px solid var(--line);background:transparent;color:var(
   var OFFLINE_AFTER_MS=12000, POLL_MS=4000;
   // Edit this one line to change the hours shown on the offline notice.
   var HOURS_TEXT='Typically online evenings (PHT)';
+  // Fast lane: the Contents API reflects `git push` in seconds, while the
+  // Pages-deployed live.json below waits on a 30-90s site rebuild.
+  var GH_API='https://api.github.com/repos/reikkikun-PH/Project-Manager-Website/contents/live.json?ref=main';
+  var GH_ACCEPT='application/vnd.github.raw';
+  var apiEtag=null, apiState=null;
+  try{ apiEtag=localStorage.getItem('pm_etag')||null; }catch(e){}
+  function saveEtag(e){
+    apiEtag=e||null;
+    try{ if(e) localStorage.setItem('pm_etag',e); else localStorage.removeItem('pm_etag'); }catch(x){}
+  }
   var q=new URLSearchParams(location.search);
   var manual=(q.get('url')||'').replace(/\/+$/,'');
   var phase=document.getElementById('phase'), box=document.getElementById('offline'),
@@ -61,18 +71,37 @@ padding:12px 24px;border:1px solid var(--line);background:transparent;color:var(
     var h=Math.floor(m/60); if(h<48) return h+'h ago';
     return Math.floor(h/24)+'d ago';
   }
+  function parseLive(j){
+    return {url:(j.url||'').replace(/\/+$/,''),updated:j.updated||'',
+            instance:j.instance||''};
+  }
   function fetchLive(){
     if(manual) return Promise.resolve({url:manual,updated:'',instance:'manual override'});
-    return fetch('live.json?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.json(); })
-      .then(function(j){ return {url:(j.url||'').replace(/\/+$/,''),updated:j.updated||'',
-                                 instance:j.instance||''}; })
-      .catch(function(){
-        return fetch('tunnel-url.txt?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.text(); })
-          .then(function(t){ return {url:t.trim().replace(/\/+$/,''),updated:'',instance:''}; })
-          // Neither file reachable (Pages misconfig / not deployed yet):
-          // stay on loading, say so once, keep retrying on the timer.
-          .catch(function(){ return {url:'',updated:'',instance:'',broken:true}; });
-      });
+    // Fast lane first: fresh seconds after push, and 304s cost no quota.
+    var headers={'Accept':GH_ACCEPT};
+    if(apiEtag) headers['If-None-Match']=apiEtag;
+    return fetch(GH_API,{headers:headers,cache:'no-store'}).then(function(r){
+      // Both headers used here (If-None-Match, restricted Accept) are
+      // CORS-safelisted: no preflight, plain GET like any other fetch.
+      if(r.status===304){
+        if(apiState) return apiState;
+        throw 0; // have an ETag but no state (e.g. cleared cache): refetch below
+      }
+      if(!r.ok) throw 0; // e.g. 403 rate-limited: fall through to Pages files
+      var et=r.headers.get('ETag'); if(et) saveEtag(et);
+      return r.json().then(function(j){ apiState=parseLive(j); return apiState; });
+    }).catch(function(){
+      // Slow lane: Pages-deployed files (carry the rebuild lag).
+      return fetch('live.json?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.json(); })
+        .then(function(j){ return parseLive(j); })
+        .catch(function(){
+          return fetch('tunnel-url.txt?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.text(); })
+            .then(function(t){ return {url:t.trim().replace(/\/+$/,''),updated:'',instance:''}; })
+            // Neither file reachable (Pages misconfig / not deployed yet):
+            // stay on loading, say so once, keep retrying on the timer.
+            .catch(function(){ return {url:'',updated:'',instance:'',broken:true}; });
+        });
+    });
   }
   // Content-verified probe: the server already exposes /api/session with
   // CORS open (`Access-Control-Allow-Origin: *`), returning our own JSON
