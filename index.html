@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <link rel="icon" href="data:," />
-<title>Project Manager &mdash; Stable Link</title>
+<title>Project Manager — Connecting…</title>
 <style>
 :root{
   --bg0:#101114; --card:#16181d; --card2:#1b1e24; --line:#2b2f37;
@@ -13,97 +13,107 @@
   --radius:18px; --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{color:var(--text);font-family:var(--mono);min-height:100vh;padding:28px 16px 40px;
+body{color:var(--text);font-family:var(--mono);min-height:100vh;min-height:100dvh;
+display:flex;align-items:center;justify-content:center;padding:24px 16px;
 background:radial-gradient(circle,rgba(255,255,255,.055) 1px,transparent 1.6px) 0 0/22px 22px,
 linear-gradient(158deg,#ba9b7a 0%,#9d7d5d 16%,#564c44 34%,#222226 58%,#101113 78%,#0a0a0d 100%);
 background-attachment:fixed}
-.wrap{width:100%;max-width:720px;margin:0 auto}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px;margin-bottom:16px}
-.eyebrow{font-size:.7rem;letter-spacing:4px;font-weight:600;color:var(--accent);margin-bottom:8px}
-h1{font-size:clamp(1.6rem,5vw,2.2rem);letter-spacing:1px;margin-bottom:8px}
+.wrap{width:100%;max-width:460px;text-align:center}
+.eyebrow{font-size:.68rem;letter-spacing:5px;font-weight:600;color:var(--accent);margin-bottom:10px}
+h1{font-size:clamp(1.7rem,7vw,2.3rem);letter-spacing:2px;margin-bottom:6px}
 h1 span{color:var(--accent)}
-.sub{color:var(--muted);font-size:.85rem;line-height:1.6;margin-bottom:18px}
-.status{display:inline-flex;align-items:center;gap:8px;font-size:.72rem;letter-spacing:1.5px;
-border:1px solid var(--line);border-radius:20px;padding:5px 12px;margin-bottom:16px}
-.status i{width:8px;height:8px;border-radius:50%;background:var(--amber)}
-.status.live{border-color:rgba(53,208,127,.5);color:var(--green)}
-.status.live i{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 1.4s infinite}
-.status.off{color:var(--muted)}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
-.urlbox{background:var(--card2);border:1px dashed rgba(255,75,31,.5);border-radius:12px;
-padding:14px;font-size:.85rem;overflow-wrap:anywhere;margin-bottom:14px;min-height:52px}
-.urlbox a{color:var(--accent);text-decoration:none}
-.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-button,.btn{font-family:inherit;font-size:.85rem;font-weight:600;letter-spacing:.5px;cursor:pointer;
-border-radius:12px;padding:14px 22px;border:1px solid var(--line);background:var(--card2);color:var(--text);
-text-decoration:none;display:inline-block;min-height:48px}
-.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;font-size:1rem}
+.tag{color:var(--muted);font-size:.78rem;margin-bottom:26px}
+/* spinner */
+.ring{width:84px;height:84px;margin:0 auto 22px;position:relative}
+.ring::before{content:"";position:absolute;inset:0;border-radius:50%;
+border:4px solid var(--line);border-top-color:var(--accent);animation:spin 0.9s linear infinite}
+.ring.done::before{border-color:var(--green);border-top-color:var(--green);animation:none}
+.ring.off::before{border-color:var(--line);border-top-color:var(--amber);animation:spin 2.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#phase{font-size:.95rem;font-weight:600;letter-spacing:.5px;margin-bottom:6px}
+#detail{color:var(--muted);font-size:.75rem;overflow-wrap:anywhere;margin-bottom:18px;min-height:2.2em}
+/* progress bar */
+.bar{height:6px;background:var(--card2);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#ffb59b);
+border-radius:99px;transition:width 0.2s linear}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+button,.btn{font-family:inherit;font-size:.8rem;font-weight:600;letter-spacing:.4px;cursor:pointer;
+border-radius:12px;padding:12px 20px;border:1px solid var(--line);background:var(--card2);color:var(--text);
+text-decoration:none;display:inline-block;min-height:44px}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
-.meta{color:var(--muted);font-size:.75rem;margin-top:10px;line-height:1.7}
+.ghost{background:transparent;border-color:transparent;color:var(--muted);font-size:.72rem}
+/* dashboard (staying) view */
+#dash{display:none;text-align:left}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px;margin-bottom:16px}
+.urlbox{background:var(--card2);border:1px dashed rgba(255,75,31,.5);border-radius:12px;
+padding:14px;font-size:.85rem;overflow-wrap:anywhere;margin-bottom:14px}
+.urlbox a{color:var(--accent);text-decoration:none}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:14px}
 .proj{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
 text-decoration:none;color:var(--text);display:block}
 .proj b{display:block;font-size:.85rem;margin-bottom:4px}
 .proj small{color:var(--muted);font-size:.7rem;overflow-wrap:anywhere}
 .proj:hover{border-color:var(--accent)}
+.meta{color:var(--muted);font-size:.72rem;margin-top:10px}
 .manual{margin-top:14px;display:flex;gap:8px}
 .manual input{flex:1;font-family:inherit;font-size:.8rem;background:var(--card2);color:var(--text);
 border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
-.howto{font-size:.78rem;color:var(--muted);line-height:1.8}
-.howto code{color:var(--text);background:var(--card2);padding:1px 6px;border-radius:6px;font-size:.75rem}
-.count{font-size:.75rem;color:var(--muted);margin-top:8px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="card">
-    <div class="eyebrow">STABLE LINK &mdash; GITHUB PAGES</div>
+
+  <!-- LOADING SCREEN (default) -->
+  <div id="loader">
+    <div class="eyebrow">STABLE LINK</div>
     <h1>Project<span>Manager</span></h1>
-    <p class="sub">This page never moves. The tunnel address behind it changes on
-    every launch &mdash; this page follows it automatically.</p>
-    <div id="status" class="status off"><i></i><span id="statusText">CHECKING&hellip;</span></div>
-    <div class="urlbox" id="urlbox">Looking for the live server&hellip;</div>
-    <div class="btnrow">
-      <button class="btn-primary" id="launch" disabled>Launch &rarr;</button>
-      <button id="copyLive" disabled>Copy live link</button>
-      <button id="copyStable">Copy this page link</button>
+    <p class="tag">Connecting you to the live server…</p>
+    <div class="ring" id="ring"></div>
+    <div id="phase">Finding the live address…</div>
+    <div id="detail">Reading the latest tunnel URL.</div>
+    <div class="bar"><i id="fill"></i></div>
+    <div class="row">
+      <button class="btn-primary" id="enter" disabled>Enter now &rarr;</button>
     </div>
-    <div class="count" id="count"></div>
-    <div class="meta" id="updated"></div>
-    <div class="grid" id="projects"></div>
-    <div class="manual">
-      <input id="manualUrl" placeholder="Paste a tunnel URL to override (https://&hellip;.trycloudflare.com)" />
-      <button id="useManual">Use</button>
+    <div class="row" style="margin-top:6px">
+      <button class="ghost" id="stayBtn">Show all links instead</button>
     </div>
   </div>
-  <div class="card">
-    <div class="eyebrow">WHY THIS EXISTS</div>
-    <p class="howto">
-    <code>host.py</code> opens a Cloudflare <b>quick tunnel</b> every run and
-    Cloudflare hands it a <b>random</b> <code>*.trycloudflare.com</code> address.
-    You can't stop that &mdash; but you can stop <i>sharing</i> it.<br><br>
-    Share <b>this page's</b> address instead
-    (<code>username.github.io/repo/</code>). A small publisher script
-    (<code>publish-live.py</code> in the Server folder) copies each new tunnel URL
-    into <code>live.json</code> next to this file, so this page always forwards to
-    the current session. Allow ~30&ndash;60s after launching for GitHub Pages to rebuild.<br><br>
-    Want a truly instant static address with no sync step? That's a Cloudflare
-    <b>named tunnel</b> + your own domain
-    (<code>cloudflared tunnel login</code> &rarr; <code>cloudflared tunnel create pm</code>
-    &rarr; route <code>pm.yourdomain.com</code>). Nothing random, no GitHub needed.
-    See <code>README.md</code> in this folder.
-    </p>
+
+  <!-- FULL DASHBOARD (?go=0) -->
+  <div id="dash">
+    <div class="card">
+      <div class="eyebrow">STABLE LINK &mdash; ALL PROJECTS</div>
+      <h1>Project<span>Manager</span></h1>
+      <p class="tag" style="text-align:left">This page never moves. The tunnel address behind it changes on
+      every launch &mdash; this page follows it automatically.</p>
+      <div class="urlbox" id="urlbox">Looking for the live server…</div>
+      <div class="row" style="justify-content:flex-start">
+        <button class="btn-primary" id="launch" disabled>Launch &rarr;</button>
+        <button id="copyLive" disabled>Copy live link</button>
+        <button id="backBtn">Loading screen</button>
+      </div>
+      <div class="meta" id="updated"></div>
+      <div class="grid" id="projects"></div>
+      <div class="manual">
+        <input id="manualUrl" placeholder="Paste a tunnel URL to override" />
+        <button id="useManual">Use</button>
+      </div>
+    </div>
   </div>
+
 </div>
 <script>
 (function(){
-  var box=document.getElementById('urlbox'), st=document.getElementById('status'),
-      stx=document.getElementById('statusText'), launch=document.getElementById('launch'),
-      copyLive=document.getElementById('copyLive'), upd=document.getElementById('updated'),
-      grid=document.getElementById('projects'), count=document.getElementById('count');
-  var live=null, countdownTimer=null, pollTimer=null;
   var q=new URLSearchParams(location.search);
-  var manual=q.get('url')||localStorage.getItem('pm_manual')||'';
+  var stay=(q.get('go')==='0'||q.has('stay')||q.has('noredirect'));
+  var manual=(q.get('url')||localStorage.getItem('pm_manual')||'').replace(/\/+$/,'');
+  var ring=document.getElementById('ring'), phase=document.getElementById('phase'),
+      detail=document.getElementById('detail'), fill=document.getElementById('fill'),
+      enter=document.getElementById('enter');
+  var live='', redirectTimer=null, pollTimer=null, startTs=0;
+  var WAIT_MS=3000; // loading-screen pause before jumping
 
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
   function ago(iso){ if(!iso) return ''; var t=Date.parse(iso); if(isNaN(t)) return '';
@@ -111,62 +121,90 @@ border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
     if(s<60) return s+'s ago'; var m=Math.floor(s/60); if(m<60) return m+'m ago';
     return Math.floor(m/60)+'h ago'; }
 
-  function setLive(url, updated, projects, instance){
-    live=url;
-    if(url){
-      st.className='status live'; stx.textContent='LIVE';
-      box.innerHTML='<a href="'+esc(url)+'">'+esc(url)+'</a>';
-      launch.disabled=false; copyLive.disabled=false;
-      upd.textContent=(instance?('Instance '+instance+' · '):'')+'Updated '+ago(updated);
-      grid.innerHTML=(projects||[]).map(function(p){
-        var href=url+'/p/'+encodeURIComponent(p.id)+'/';
-        return '<a class="proj" href="'+esc(href)+'"><b>'+esc(p.name||p.id)+'</b><small>'+esc(href)+'</small></a>';
-      }).join('');
-      // auto-redirect: ON by default (this page is a forwarder).
-      // Add ?go=0 (?stay, ?noredirect) to stay, or ?go=5 for a 5s countdown.
-      var stay=(q.get('go')==='0'||q.has('stay')||q.has('noredirect'));
-      if(!stay && !window._redirected){
-        window._redirected=true;
-        var secs=parseInt(q.get('go'),10); if(isNaN(secs)) secs=3;
-        if(secs<=0){ location.href=url; return; }
-        var n=secs; count.textContent='Redirecting in '+n+'s… (?go=0 to stay)';
-        // "Stay here" link so visitors can stop the jump without editing the URL.
-        var stop=document.createElement('a'); stop.href='?go=0'; stop.textContent='Stay here';
-        stop.style.cssText='margin-left:8px;color:inherit';
-        stop.onclick=function(e){ e.preventDefault(); clearInterval(countdownTimer);
-          count.textContent=''; history.replaceState(null,'',location.pathname); };
-        count.appendChild(stop);
-        countdownTimer=setInterval(function(){ n--;
-          if(n<=0){clearInterval(countdownTimer);location.href=url;}
-          else count.firstChild.textContent='Redirecting in '+n+'s… (?go=0 to stay)'; },1000);
-      }
-    } else {
-      st.className='status off'; stx.textContent='OFFLINE';
-      box.textContent='Server is offline — launch host.py on the host PC, then wait ~60s for this page to update.';
-      launch.disabled=true; copyLive.disabled=true; upd.textContent=updated?('Last update '+ago(updated)):'';
-      grid.innerHTML='';
-    }
-  }
-
-  function load(){
-    if(manual){ setLive(manual.replace(/\/+$/,''),'',[],'manual override'); return; }
-    fetch('live.json?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.json(); })
-      .then(function(j){ setLive((j.url||'').replace(/\/+$/,''), j.updated, j.projects||[], j.instance); })
+  function fetchLive(){
+    if(manual) return Promise.resolve({url:manual,updated:'',projects:[],instance:'manual override'});
+    return fetch('live.json?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){ return {url:(j.url||'').replace(/\/+$/,''),updated:j.updated,
+                                 projects:j.projects||[],instance:j.instance}; })
       .catch(function(){
-        fetch('tunnel-url.txt?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.text(); })
-          .then(function(t){ t=t.trim(); setLive(t? t.replace(/\/+$/,'') : '', '', [], ''); })
-          .catch(function(){ setLive('', '', [], ''); });
+        return fetch('tunnel-url.txt?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.text(); })
+          .then(function(t){ return {url:t.trim().replace(/\/+$/,''),updated:'',projects:[],instance:''}; })
+          .catch(function(){ return {url:'',updated:'',projects:[],instance:''}; });
       });
   }
-  launch.onclick=function(){ if(live) location.href=live; };
-  copyLive.onclick=function(){ if(live) navigator.clipboard.writeText(live); };
-  document.getElementById('copyStable').onclick=function(){ navigator.clipboard.writeText(location.href.split('?')[0]); };
-  document.getElementById('useManual').onclick=function(){
-    var v=document.getElementById('manualUrl').value.trim().replace(/\/+$/,'');
-    if(v){ localStorage.setItem('pm_manual',v); location.search='?url='+encodeURIComponent(v); }
-  };
-  if(manual) document.getElementById('manualUrl').value=manual;
-  load(); pollTimer=setInterval(load,15000);
+
+  /* ---------- loading-screen mode ---------- */
+  function setBar(p){ fill.style.width=Math.min(100,Math.max(0,p))+'%'; }
+  function beginCountdown(){
+    startTs=Date.now(); setBar(0);
+    phase.textContent='Live server found — taking you there…';
+    enter.disabled=false;
+    redirectTimer=setInterval(function(){
+      var p=(Date.now()-startTs)/WAIT_MS;
+      setBar(p*100);
+      if(p>=1){ clearInterval(redirectTimer); location.href=live; }
+    },100);
+  }
+  function loaderTick(){
+    fetchLive().then(function(s){
+      if(s.url){
+        if(s.url!==live){ live=s.url; detail.textContent=s.url; beginCountdown(); }
+        // same URL still coming in: keep counting, refresh the shown address
+        else detail.textContent=s.url;
+      } else {
+        // OFFLINE: hold on the loading screen and keep waiting —
+        // the moment host.py comes back, this jumps on its own.
+        live=''; clearInterval(redirectTimer);
+        ring.className='ring off';
+        phase.textContent='Server is offline';
+        detail.textContent='Waiting for host.py to come online — this page will jump automatically.';
+        setBar(0); enter.disabled=true;
+      }
+    });
+  }
+
+  /* ---------- dashboard mode (?go=0) ---------- */
+  function fillDash(){
+    var box=document.getElementById('urlbox'), launch=document.getElementById('launch'),
+        copyLive=document.getElementById('copyLive'), upd=document.getElementById('updated'),
+        grid=document.getElementById('projects');
+    fetchLive().then(function(s){
+      if(s.url){
+        box.innerHTML='<a href="'+esc(s.url)+'">'+esc(s.url)+'</a>';
+        launch.disabled=false; copyLive.disabled=false;
+        launch.onclick=function(){ location.href=s.url; };
+        copyLive.onclick=function(){ navigator.clipboard.writeText(s.url); };
+        upd.textContent=(s.instance?('Instance '+s.instance+' · '):'')+'Updated '+ago(s.updated);
+        grid.innerHTML=s.projects.map(function(p){
+          var href=s.url+'/p/'+encodeURIComponent(p.id)+'/';
+          return '<a class="proj" href="'+esc(href)+'"><b>'+esc(p.name||p.id)+'</b><small>'+esc(href)+'</small></a>';
+        }).join('');
+      } else {
+        box.textContent='Server is offline — launch host.py on the host PC, then wait ~60s for this page to update.';
+        upd.textContent=''; grid.innerHTML='';
+      }
+    });
+    setInterval(fillDash,15000);
+  }
+
+  if(stay){
+    document.getElementById('loader').style.display='none';
+    document.getElementById('dash').style.display='block';
+    document.title='Project Manager — Stable Link';
+    document.getElementById('backBtn').onclick=function(){ location.search=''; };
+    document.getElementById('useManual').onclick=function(){
+      var v=document.getElementById('manualUrl').value.trim().replace(/\/+$/,'');
+      if(v){ localStorage.setItem('pm_manual',v); location.search='?go=0&url='+encodeURIComponent(v); }
+    };
+    if(manual) document.getElementById('manualUrl').value=manual;
+    fillDash();
+  } else {
+    enter.onclick=function(){ if(live) { clearInterval(redirectTimer); location.href=live; } };
+    document.getElementById('stayBtn').onclick=function(){ location.search='?go=0'; };
+    phase.textContent='Finding the live address…';
+    loaderTick();
+    pollTimer=setInterval(loaderTick,5000);
+  }
 })();
 </script>
 </body>

@@ -16,10 +16,12 @@ index.html (this page) fetches live.json, shows LAUNCH + per-project links,
              optionally auto-redirects with ?go=3
 ```
 
-- `index.html` — the stable page. Opens the live server **automatically**
-  (3s countdown, cancellable). Add `?go=0` to stay on the page instead,
-  or `?go=5` for a longer countdown. Also shows live status and
-  per-project cards (`<tunnel>/p/<id>/`), plus a `?url=` manual override.
+- `index.html` — a **loading screen** for the live server. Opens the tunnel
+  URL automatically after a short pause (progress bar + cancellable
+  **Enter now**). Offline → it waits and jumps on its own when `host.py`
+  comes back. Add `?go=0` to see the full link dashboard (per-project
+  cards `<tunnel>/p/<id>/`, copy buttons) instead, `?url=` for a manual
+  override.
 - `live.json` — overwritten by the publisher on every launch. Do not hand-edit.
 - `tunnel-url.txt` — plain-text copy of the same URL (fallback + `curl` friendly).
 
@@ -30,8 +32,9 @@ index.html (this page) fetches live.json, shows LAUNCH + per-project links,
 2. Repo → **Settings → Pages** → Deploy from branch → `main` + `/ (root)` → Save.
    Your stable link is `https://<user>.github.io/<repo>/`.
 3. On the host PC, run the publisher alongside the manager (see below).
-4. Share the stable link — visitors jump to the live server automatically.
-   Append `?go=0` when you want to show the page itself instead of redirecting.
+4. Share the stable link — visitors see a loading screen, then land on the
+   live server automatically. Append `?go=0` to show the link dashboard
+   instead of the loading screen.
 
 ## Running the publisher
 
