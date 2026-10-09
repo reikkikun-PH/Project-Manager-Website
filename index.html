@@ -69,7 +69,9 @@ padding:12px 24px;border:1px solid var(--line);background:transparent;color:var(
       .catch(function(){
         return fetch('tunnel-url.txt?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.text(); })
           .then(function(t){ return {url:t.trim().replace(/\/+$/,''),updated:'',instance:''}; })
-          .catch(function(){ return {url:'',updated:'',instance:''}; });
+          // Neither file reachable (Pages misconfig / not deployed yet):
+          // stay on loading, say so once, keep retrying on the timer.
+          .catch(function(){ return {url:'',updated:'',instance:'',broken:true}; });
       });
   }
   // Content-verified probe: the server already exposes /api/session with
@@ -101,7 +103,7 @@ padding:12px 24px;border:1px solid var(--line);background:transparent;color:var(
     if(jumped||checking) return;
     fetchLive().then(function(s){
       if(jumped) return;
-      if(!s.url){ markOffline(s.updated); return; }
+      if(!s.url){ markOffline(s.updated, s.broken); return; }
       // URL known — but jump only when OUR server answers with its own JSON.
       // A stale live.json (Pages rebuild lag after host.py stops) must never
       // throw visitors at a dead tunnel's Cloudflare error page.
@@ -111,11 +113,11 @@ padding:12px 24px;border:1px solid var(--line);background:transparent;color:var(
         checking=false;
         if(jumped) return;
         if(alive){ jumped=true; location.href=s.url; }
-        else markOffline(s.updated);
+        else markOffline(s.updated, s.broken);
       });
     });
   }
-  function markOffline(updated){
+  function markOffline(updated, broken){
     // No server (or a dead one). Stay a plain spinner for a while, then say
     // so honestly — but keep polling, so this still jumps by itself when
     // host.py returns.
@@ -123,7 +125,8 @@ padding:12px 24px;border:1px solid var(--line);background:transparent;color:var(
     if(Date.now()-offlineSince>=OFFLINE_AFTER_MS){
       phase.textContent='LOADING';
       box.style.display='block';
-      lastEl.textContent=updated?('Last online '+ago(updated)):('');
+      lastEl.textContent=broken?('This page is not connected to a server yet.')
+        :(updated?('Last online '+ago(updated)):(''));
     } else {
       phase.textContent='LOADING';
     }
