@@ -122,16 +122,23 @@ border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
         var href=url+'/p/'+encodeURIComponent(p.id)+'/';
         return '<a class="proj" href="'+esc(href)+'"><b>'+esc(p.name||p.id)+'</b><small>'+esc(href)+'</small></a>';
       }).join('');
-      // auto-redirect: ?go=1 (or ?go=5 with seconds)
-      var go=q.get('go');
-      if(go!==null && !window._redirected){
+      // auto-redirect: ON by default (this page is a forwarder).
+      // Add ?go=0 (?stay, ?noredirect) to stay, or ?go=5 for a 5s countdown.
+      var stay=(q.get('go')==='0'||q.has('stay')||q.has('noredirect'));
+      if(!stay && !window._redirected){
         window._redirected=true;
-        var secs=parseInt(go,10); if(isNaN(secs)) secs=3;
+        var secs=parseInt(q.get('go'),10); if(isNaN(secs)) secs=3;
         if(secs<=0){ location.href=url; return; }
-        var n=secs; count.textContent='Redirecting in '+n+'s… (add ?go=0 to stay)';
+        var n=secs; count.textContent='Redirecting in '+n+'s… (?go=0 to stay)';
+        // "Stay here" link so visitors can stop the jump without editing the URL.
+        var stop=document.createElement('a'); stop.href='?go=0'; stop.textContent='Stay here';
+        stop.style.cssText='margin-left:8px;color:inherit';
+        stop.onclick=function(e){ e.preventDefault(); clearInterval(countdownTimer);
+          count.textContent=''; history.replaceState(null,'',location.pathname); };
+        count.appendChild(stop);
         countdownTimer=setInterval(function(){ n--;
           if(n<=0){clearInterval(countdownTimer);location.href=url;}
-          else count.textContent='Redirecting in '+n+'s… (add ?go=0 to stay)'; },1000);
+          else count.firstChild.textContent='Redirecting in '+n+'s… (?go=0 to stay)'; },1000);
       }
     } else {
       st.className='status off'; stx.textContent='OFFLINE';
