@@ -17,8 +17,9 @@ index.html (this page) fetches live.json, shows LAUNCH + per-project links,
 ```
 
 - `index.html` — just a loading screen. Reads `live.json` and forwards to
-  the tunnel URL; while the server is offline it keeps spinning until
-  `host.py` comes back. Nothing else is shown.
+  the tunnel URL. If the server stays offline ~12s it honestly says so
+  ("SERVER OFFLINE", last-online time, retry button) and still jumps on
+  its own when `host.py` comes back. Nothing else is shown.
 - `live.json` — overwritten by the publisher on every launch. Do not hand-edit.
 - `tunnel-url.txt` — plain-text copy of the same URL (fallback + `curl` friendly).
 
