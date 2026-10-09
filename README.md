@@ -16,12 +16,14 @@ index.html (this page) fetches live.json, shows LAUNCH + per-project links,
              optionally auto-redirects with ?go=3
 ```
 
-- `index.html` — just a loading screen. Reads `live.json`, **probes the
-  tunnel URL, and forwards only when it actually answers** — a stale link
-  (e.g. Pages rebuild lag after `host.py` stops) never throws visitors at
-  a dead tunnel. If the server stays unreachable ~12s it honestly says so
-  ("SERVER OFFLINE", last-online time, retry button) and still jumps on
-  its own when `host.py` comes back. Nothing else is shown.
+- `index.html` — just a loading screen. Reads `live.json`, then verifies
+  the address through the server's own `/api/session` (CORS-open JSON
+  `{ok, instance}`) and forwards **only on a real answer with the matching
+  instance** — a dead tunnel's Cloudflare error page is HTML with no CORS
+  headers, so the browser itself rejects it and no redirect happens. If the
+  server stays unreachable ~12s it honestly says so ("SERVER OFFLINE",
+  last-online time, retry button) and still jumps on its own when `host.py`
+  comes back. Nothing else is shown.
 - `live.json` — overwritten by the publisher on every launch. Do not hand-edit.
 - `tunnel-url.txt` — plain-text copy of the same URL (fallback + `curl` friendly).
 

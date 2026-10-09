@@ -62,51 +62,55 @@ padding:12px 24px;border:1px solid var(--line);background:transparent;color:var(
     return Math.floor(h/24)+'d ago';
   }
   function fetchLive(){
-    if(manual) return Promise.resolve({url:manual,updated:''});
+    if(manual) return Promise.resolve({url:manual,updated:'',instance:'manual override'});
     return fetch('live.json?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.json(); })
-      .then(function(j){ return {url:(j.url||'').replace(/\/+$/,''),updated:j.updated||''}; })
+      .then(function(j){ return {url:(j.url||'').replace(/\/+$/,''),updated:j.updated||'',
+                                 instance:j.instance||''}; })
       .catch(function(){
         return fetch('tunnel-url.txt?t='+Date.now()).then(function(r){ if(!r.ok) throw 0; return r.text(); })
-          .then(function(t){ return {url:t.trim().replace(/\/+$/,''),updated:''}; })
-          .catch(function(){ return {url:'',updated:''}; });
+          .then(function(t){ return {url:t.trim().replace(/\/+$/,''),updated:'',instance:''}; })
+          .catch(function(){ return {url:'',updated:'',instance:''}; });
       });
   }
-  // Probes the tunnel URL before jumping: resolves true when the address
-  // answers, false on a network-level failure (dead tunnel / DNS gone),
-  // 'timeout' when it is just slow. no-cors gives an opaque success for ANY
-  // answering server, which is all we need — dead addresses reject instead.
-  function probe(url, ms){
-    return new Promise(function(resolve){
-      var done=false, timer=null, ctrl=null;
-      try{ ctrl=new AbortController(); }catch(e){ ctrl=null; }
-      function finish(v){ if(!done){ done=true; if(timer)clearTimeout(timer); resolve(v); } }
-      timer=setTimeout(function(){
-        try{ if(ctrl) ctrl.abort(); }catch(e){}
-        finish('timeout');
-      }, ms||8000);
-      var opt={mode:'no-cors', cache:'no-store', redirect:'follow', referrerPolicy:'no-referrer'};
-      if(ctrl) opt.signal=ctrl.signal;
-      fetch(url+'?pm-probe='+Date.now(), opt).then(
-        function(){ finish(true); },
-        function(){ finish(false); });
-    });
+  // Content-verified probe: the server already exposes /api/session with
+  // CORS open (`Access-Control-Allow-Origin: *`), returning our own JSON
+  // {ok:true, instance}. A dead tunnel's Cloudflare error page is HTML with
+  // no CORS headers, so the browser rejects it — exactly the distinction a
+  // no-cors connectivity check could never make (the edge "answers" 1033).
+  function probe(state, ms){
+    var ctrl=null; try{ ctrl=new AbortController(); }catch(e){ ctrl=null; }
+    var timer=setTimeout(function(){
+      try{ if(ctrl) ctrl.abort(); }catch(e){}
+    }, ms||8000);
+    function done(v){ try{ clearTimeout(timer); }catch(e){} return v; }
+    var opt={cache:'no-store', referrerPolicy:'no-referrer'};
+    if(ctrl) opt.signal=ctrl.signal;
+    return fetch(state.url+'/api/session?t='+Date.now(), opt)
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(d){
+        if(!(d&&d.ok===true)) return done(false);
+        // Right tunnel family, wrong manager instance: not ours, don't jump.
+        if(state.instance&&d.instance&&state.instance!=='manual override'
+           &&String(d.instance).toLowerCase()!==String(state.instance).toLowerCase())
+          return done(false);
+        return done(true);
+      })
+      .catch(function(){ return done(false); });
   }
   function tick(){
     if(jumped||checking) return;
     fetchLive().then(function(s){
       if(jumped) return;
       if(!s.url){ markOffline(s.updated); return; }
-      // URL known — but only jump when it actually answers. A stale live.json
-      // (Pages rebuild lag after host.py stops) must never throw visitors
-      // at a dead tunnel.
+      // URL known — but jump only when OUR server answers with its own JSON.
+      // A stale live.json (Pages rebuild lag after host.py stops) must never
+      // throw visitors at a dead tunnel's Cloudflare error page.
       checking=true;
       phase.textContent='LOADING';
-      probe(s.url, 8000).then(function(r){
+      probe(s, 8000).then(function(alive){
         checking=false;
         if(jumped) return;
-        // Strict: jump ONLY on a real answer. A timeout is treated as
-        // offline — the next poll re-probes, so a slow server just waits.
-        if(r===true){ jumped=true; location.href=s.url; }
+        if(alive){ jumped=true; location.href=s.url; }
         else markOffline(s.updated);
       });
     });
