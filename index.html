@@ -51,7 +51,7 @@ padding:12px 24px;border:1px solid var(--line);background:transparent;color:var(
   var phase=document.getElementById('phase'), box=document.getElementById('offline'),
       lastEl=document.getElementById('lastonline');
   document.getElementById('hours').textContent=HOURS_TEXT;
-  var jumped=false, offlineSince=null;
+  var jumped=false, offlineSince=null, checking=false;
 
   function ago(iso){
     var t=Date.parse(iso||''); if(isNaN(t)) return '';
@@ -71,23 +71,62 @@ padding:12px 24px;border:1px solid var(--line);background:transparent;color:var(
           .catch(function(){ return {url:'',updated:''}; });
       });
   }
-  function tick(){
-    fetchLive().then(function(s){
-      if(s.url && !jumped){ jumped=true; location.href=s.url; return; }
-      if(s.url) return;
-      // No server. Stay a plain spinner for a while, then say so honestly —
-      // but keep polling, so this still jumps by itself when host.py returns.
-      if(offlineSince===null) offlineSince=Date.now();
-      if(Date.now()-offlineSince>=OFFLINE_AFTER_MS){
-        phase.textContent='LOADING';
-        box.style.display='block';
-        lastEl.textContent=s.updated?('Last online '+ago(s.updated)):('');
-      } else {
-        phase.textContent='LOADING';
-      }
+  // Probes the tunnel URL before jumping: resolves true when the address
+  // answers, false on a network-level failure (dead tunnel / DNS gone),
+  // 'timeout' when it is just slow. no-cors gives an opaque success for ANY
+  // answering server, which is all we need — dead addresses reject instead.
+  function probe(url, ms){
+    return new Promise(function(resolve){
+      var done=false, timer=null, ctrl=null;
+      try{ ctrl=new AbortController(); }catch(e){ ctrl=null; }
+      function finish(v){ if(!done){ done=true; if(timer)clearTimeout(timer); resolve(v); } }
+      timer=setTimeout(function(){
+        try{ if(ctrl) ctrl.abort(); }catch(e){}
+        finish('timeout');
+      }, ms||8000);
+      var opt={mode:'no-cors', cache:'no-store', redirect:'follow', referrerPolicy:'no-referrer'};
+      if(ctrl) opt.signal=ctrl.signal;
+      fetch(url+'?pm-probe='+Date.now(), opt).then(
+        function(){ finish(true); },
+        function(){ finish(false); });
     });
   }
-  document.getElementById('retry').onclick=function(){ tick(); };
+  function tick(){
+    if(jumped||checking) return;
+    fetchLive().then(function(s){
+      if(jumped) return;
+      if(!s.url){ markOffline(s.updated); return; }
+      // URL known — but only jump when it actually answers. A stale live.json
+      // (Pages rebuild lag after host.py stops) must never throw visitors
+      // at a dead tunnel.
+      checking=true;
+      phase.textContent='LOADING';
+      probe(s.url, 8000).then(function(r){
+        checking=false;
+        if(jumped) return;
+        // Strict: jump ONLY on a real answer. A timeout is treated as
+        // offline — the next poll re-probes, so a slow server just waits.
+        if(r===true){ jumped=true; location.href=s.url; }
+        else markOffline(s.updated);
+      });
+    });
+  }
+  function markOffline(updated){
+    // No server (or a dead one). Stay a plain spinner for a while, then say
+    // so honestly — but keep polling, so this still jumps by itself when
+    // host.py returns.
+    if(offlineSince===null) offlineSince=Date.now();
+    if(Date.now()-offlineSince>=OFFLINE_AFTER_MS){
+      phase.textContent='LOADING';
+      box.style.display='block';
+      lastEl.textContent=updated?('Last online '+ago(updated)):('');
+    } else {
+      phase.textContent='LOADING';
+    }
+  }
+  document.getElementById('retry').onclick=function(){
+    offlineSince=null; box.style.display='none'; checking=false; tick();
+  };
   tick();
   setInterval(tick,POLL_MS);
 })();
