@@ -1,0 +1,31 @@
+{
+  "url": "https://sponsors-like-collectible-contract.trycloudflare.com",
+  "updated": "2026-10-09T13:05:06+00:00",
+  "instance": "main",
+  "projects": [
+    {
+      "id": "verifid",
+      "name": "VerifID"
+    },
+    {
+      "id": "baoncheck",
+      "name": "BaonCheck"
+    },
+    {
+      "id": "unievent",
+      "name": "UniEvent"
+    },
+    {
+      "id": "jonil",
+      "name": "jonil"
+    },
+    {
+      "id": "tuklas",
+      "name": "Tuklas"
+    },
+    {
+      "id": "online-inventory-and-sales-syste",
+      "name": "Online Inventory and Sales System"
+    }
+  ]
+}
