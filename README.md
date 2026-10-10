@@ -54,10 +54,10 @@ From the **Server Project Manager** folder:
 
 ```bat
 REM one-off update (after host.py prints the PUBLIC LINK):
-py -3 publish-live.py --once
+py -3 tools/publish-live.py --once
 
 REM or keep it watching (leave running next to host.py):
-py -3 publish-live.py --watch
+py -3 tools/publish-live.py --watch
 ```
 
 A run commits + pushes **only when the URL or projects actually changed**
