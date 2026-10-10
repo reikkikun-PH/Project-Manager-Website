@@ -129,23 +129,47 @@ padding:12px 24px;border:1px solid var(--line);background:transparent;color:var(
       .catch(function(){ return done(false); });
   }
   function tick(){
+    // Poll lane (slow but durable): newest-first fetch, shared handler.
     if(jumped||checking) return;
-    fetchLive().then(function(s){
+    fetchLive().then(handleState);
+  }
+  function handleState(s){
+    // URL known — but jump only when OUR server answers with its own JSON.
+    // A stale live.json (Pages rebuild lag after host.py stops) must never
+    // throw visitors at a dead tunnel's Cloudflare error page.
+    if(jumped) return;
+    if(!s.url){ markOffline(s.updated, s.broken); return; }
+    if(checking) return;
+    checking=true;
+    phase.textContent='LOADING';
+    probe(s, 8000).then(function(alive){
+      checking=false;
       if(jumped) return;
-      if(!s.url){ markOffline(s.updated, s.broken); return; }
-      // URL known — but jump only when OUR server answers with its own JSON.
-      // A stale live.json (Pages rebuild lag after host.py stops) must never
-      // throw visitors at a dead tunnel's Cloudflare error page.
-      checking=true;
-      phase.textContent='LOADING';
-      probe(s, 8000).then(function(alive){
-        checking=false;
-        if(jumped) return;
-        if(alive){ jumped=true; location.href=s.url; }
-        else markOffline(s.updated, s.broken);
-      });
+      if(alive){ jumped=true; location.href=s.url; }
+      else markOffline(s.updated, s.broken);
     });
   }
+  // Push lane (realtime): the host POSTs every new address to this topic,
+  // so waiting pages learn it in seconds instead of next poll. Same
+  // handleState + probe gate as above, so forged or dead links are ignored
+  // exactly like stale ones. The poll lane keeps running underneath, so a
+  // blocked stream or a down ntfy only costs speed, never correctness.
+  var NTFY_URL='https://ntfy.sh/pm-live-794b8ab67dd317504d6ac58b/sse';
+  var lastPushed=null;
+  try{
+    var es=new EventSource(NTFY_URL);
+    es.onmessage=function(ev){
+      try{
+        var d=JSON.parse(ev.data);
+        if(!d||d.event&&d.event!=='message') return;
+        var s=parseLive(JSON.parse(d.message));
+        if(s.url&&s.url===lastPushed) return; // already on it / probing it
+        lastPushed=s.url||null;
+        handleState(s);
+      }catch(e){}
+    };
+    es.onerror=function(){ try{ es.close(); }catch(e){} };
+  }catch(e){}
   function markOffline(updated, broken){
     // No server (or a dead one). Stay a plain spinner for a while, then say
     // so honestly — but keep polling, so this still jumps by itself when

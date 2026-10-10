@@ -18,6 +18,13 @@ GitHub repo live.json  →  git push
               │   304s cost no quota)             live.json / tunnel-url.txt)
               ▼                                /
 index.html reads newest-first, verifies /api/session, forwards
+
+Push lane (realtime, ~1-2s): on every real change `publish-live.py` also
+POSTs `{url, instance}` to an ntfy.sh topic the page holds open over SSE,
+so waiting visitors learn the new address within seconds — no poll, no
+rebuild. The topic is public-readable like the repo itself, and every
+pushed address still goes through the `/api/session` + instance check, so
+forged messages are ignored. Polling keeps running underneath as fallback.
 ```
 
 - `index.html` — just a loading screen. Reads `live.json`, then verifies
